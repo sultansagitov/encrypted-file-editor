@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <encrypted_file>"
+    exit 1
+fi
+
+ENCRYPTED_FILE="$1"
+TEMP_FILE="$(mktemp)"
+CIPHER="aes-256-cbc"
+
+prompt_password() {
+    local prompt_message="$1"
+    echo "$prompt_message"
+    read -s PASSWORD
+}
+
+if [[ -f "$ENCRYPTED_FILE" ]]; then
+    prompt_password "Enter password to decrypt the file:"
+    if ! echo "$PASSWORD" | openssl enc -d -"$CIPHER" -base64 -pbkdf2 -pass stdin -in "$ENCRYPTED_FILE" -out "$TEMP_FILE"; then
+        echo "Failed to decrypt the file. Check your password or the file format."
+        rm -f "$TEMP_FILE"
+        exit 1
+    fi
+    echo "File decrypted successfully. Opening for editing..."
+else
+    echo "File does not exist. Creating a new file for editing."
+    > "$TEMP_FILE"
+    prompt_password "Enter a password to use for encrypting the new file:"
+fi
+
+${EDITOR:-nano} "$TEMP_FILE"
+
+if echo "$PASSWORD" | openssl enc -e -"$CIPHER" -base64 -pbkdf2 -pass stdin -in "$TEMP_FILE" -out "$ENCRYPTED_FILE"; then
+    echo "File successfully encrypted as $ENCRYPTED_FILE."
+else
+    echo "Failed to encrypt the file."
+fi
+
+rm -f "$TEMP_FILE"
+
