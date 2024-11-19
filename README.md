@@ -73,9 +73,3 @@ export EDITOR="vim"
 
 ## Limitations
 - The script uses a single password for both decryption and encryption. Make sure to remember the password, as there is no recovery mechanism.
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request if you have suggestions or improvements.
